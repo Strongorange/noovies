@@ -6,7 +6,7 @@ import { Dimensions, FlatList } from "react-native";
 import Slide from "../components/Slide";
 import VMedia from "../components/VMedia";
 import HMedia from "../components/HMedia";
-import { useQuery, useQueryClient } from "react-query";
+import { useInfiniteQuery, useQuery, useQueryClient } from "react-query";
 import { moviesApi } from "../api";
 import Loader from "../components/Loader";
 import HList from "../components/HList";
@@ -52,7 +52,7 @@ const Movies = () => {
     data: upcomingData,
     // refetch: refetchUpcoming,
     isRefetching: isRefetchingUpcoming,
-  } = useQuery(["movies", "upcoming"], moviesApi.upcoming);
+  } = useInfiniteQuery(["movies", "upcoming"], moviesApi.upcoming);
   const {
     isLoading: trendingLoading,
     data: trendingData,
@@ -82,12 +82,17 @@ const Movies = () => {
   const movieKeyExtractor = (item) => item.id + "";
 
   const loading = nowPlayingLoading || upcomingLoading || trendingLoading;
+  const loadMore = () => {
+    alert("load more!");
+  };
 
   return loading ? (
     <Loader />
   ) : (
     <FlatList
       onRefresh={onRefresh}
+      onEndReached={loadMore}
+      onEndReachedThreshold={0.4}
       refreshing={refreshing}
       ListHeaderComponent={
         <>
@@ -119,7 +124,7 @@ const Movies = () => {
           <ComingSoonTitle>Coming soon</ComingSoonTitle>
         </>
       }
-      data={upcomingData.results}
+      data={upcomingData.pages.map((page) => page.results).flat()}
       keyExtractor={movieKeyExtractor}
       ItemSeperatorComponent={HSeparator}
       renderItem={renderHMedia}
