@@ -52,7 +52,14 @@ const Movies = () => {
     data: upcomingData,
     // refetch: refetchUpcoming,
     isRefetching: isRefetchingUpcoming,
-  } = useInfiniteQuery(["movies", "upcoming"], moviesApi.upcoming);
+    hasNextPage,
+    fetchNextPage,
+  } = useInfiniteQuery(["movies", "upcoming"], moviesApi.upcoming, {
+    getNextPageParam: (currentPage) => {
+      const nextPage = currentPage.page + 1;
+      return nextPage > currentPage.total_pages ? null : nextPage;
+    },
+  });
   const {
     isLoading: trendingLoading,
     data: trendingData,
@@ -83,7 +90,9 @@ const Movies = () => {
 
   const loading = nowPlayingLoading || upcomingLoading || trendingLoading;
   const loadMore = () => {
-    alert("load more!");
+    if (hasNextPage) {
+      fetchNextPage();
+    }
   };
 
   return loading ? (
@@ -92,7 +101,6 @@ const Movies = () => {
     <FlatList
       onRefresh={onRefresh}
       onEndReached={loadMore}
-      onEndReachedThreshold={0.4}
       refreshing={refreshing}
       ListHeaderComponent={
         <>
